@@ -178,8 +178,9 @@ public class Main extends JComponent {
 			}
 			if(genaretaNewCar == false) {
 				
-				int rand = ThreadLocalRandom.current().nextInt(3, 6);
-				cars.add(new Car(500, 600, 20, 30, rand, 6, Color.ORANGE, firstTrafficLights));
+				int randSpeed = GlobalVariables.randInt(3, 6);
+				Color randColor = GlobalVariables.randColor();
+				cars.add(new Car(500, 600, 20, 30, randSpeed, 6, randColor, firstTrafficLights));
 			}
 		}
 	}

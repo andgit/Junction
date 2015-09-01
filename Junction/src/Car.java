@@ -27,7 +27,7 @@ public class Car {
         this.boundingHeight = 2 * this.height;
         this.boundingDimensions = new int[4];
         this.boundingDimensions[0] = x;
-        this.boundingDimensions[1] = y-(this.boundingHeight/2);
+        this.boundingDimensions[1] = y-(this.boundingHeight/4);
         this.boundingDimensions[2] = width;
         this.boundingDimensions[3] = height+this.boundingHeight;
         this.isCollision = false;
@@ -123,7 +123,7 @@ public class Car {
 		
 		if(System.currentTimeMillis() - this.speedTimer > 4000 && this.isCollision == false) {
 			
-			this.speed = ThreadLocalRandom.current().nextInt(1, this.maxSpeed);
+			this.speed = GlobalVariables.randInt(1, this.maxSpeed);
 		}
 	}
 	
