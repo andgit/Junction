@@ -7,8 +7,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Car {
 
-	private int x, y;
-	private int width, height;
+	public int x, y;
+	public int width, height;
 	private int boundingWidth;
 	private int boundingHeight;
 	private int boundingDimensions[];
@@ -23,8 +23,13 @@ public class Car {
 	public boolean goRight = false;
 	public boolean lane; //pas 0-lewy, 1-prawy-wtedy wiem w ktora strone moze skrecac
 	public boolean changeDirection;//czy auto ma potem skrecic
+	public boolean rot = false;//obroc auto skrecie na dodatkowym pasie
 	
-	public Car(int x, int y, int width, int height, int speed, int maxSpeed, Color color, TrafficLights assignedTrafficLights, boolean lane,  boolean changeDirectionCar) {
+	public boolean isRotateOnSideLane=false;//czy auto juz sie obrocilo na pobocznym pasie ruchu
+	public boolean allowedToChangeTheLane=true;//czy auto moze wlaczyc sie do ruchu
+	public boolean sideLane;//czy auto ma zjechac na poboczny pas
+	
+	public Car(int x, int y, int width, int height, int speed, int maxSpeed, Color color, TrafficLights assignedTrafficLights, boolean lane,  boolean changeDirectionCar, boolean sideLane) {
         
         this.x = x;
         this.y = y;
@@ -46,7 +51,7 @@ public class Car {
         this.speedTimer = System.currentTimeMillis();
         this.lane = lane;
         this.changeDirection = changeDirectionCar;
-        System.currentTimeMillis();
+        this.sideLane = sideLane;
     }
 
     public void actionPerformed() {
@@ -78,7 +83,7 @@ public class Car {
 
 	private void go() {
 		
-		if(this.stop == false) {
+		if(this.stop == false && sideLane == false) {
 			
 			if(goRight) {
 				
@@ -149,7 +154,9 @@ public class Car {
 			
 			g.fillOval(500, 250, 20, 20);
 			g.setColor(Color.blue);
-			g.fillOval(500, 330, 20, 20);
+			g.fillOval(500, 530, 20, 20);
+			g.fillOval(670, 530, 20, 20);
+			g.fillOval(670, 500, 20, 20);
 		}
     }
     
@@ -199,7 +206,7 @@ public class Car {
 	
     private void updateBoundingDimensions() {
     	
-    	if(goLeft || goRight) {
+    	if(goLeft || goRight || sideLane) {
     		
             this.boundingDimensions[0] = x-(this.boundingWidth/2);
             this.boundingDimensions[1] = y;
