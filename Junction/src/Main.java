@@ -20,24 +20,27 @@ public class Main extends JComponent {
 	private TrafficLights firstTrafficLights;
 	private static final long serialVersionUID = 1L;
 	int tempCounter = 0;
-	private long generateNewCarTimer = 0;
+	private long generateNewCarTimer;
 	private final int generatingCarDelta = 2000;
+	private int turnedCarsOnLeftCounter = 0;//co 3 auto ma skrecac w lewo-to jest counter
+	private int turnedCarsOnRightCounter = 0;//co 3 auto ma skrecac w prawo-to jest counter
 
 	private void init() {
 		
 		firstTrafficLights = new TrafficLights(TrafficLights.TrafficLightsColors.GREEN, true, false, 600, 595);
 		cars = new ArrayList<Car>();
-		cars.add(new Car(500, 100, 20, 30, 2, 6, Color.RED, firstTrafficLights));
-		cars.add(new Car(500, 200, 20, 30, 2, 6, Color.YELLOW, firstTrafficLights));
-		cars.add(new Car(500, 300, 20, 30, 3, 6, Color.GREEN, firstTrafficLights));
-		cars.add(new Car(500, 400, 20, 30, 3, 6, Color.BLACK, firstTrafficLights));
-		cars.add(new Car(500, 500, 20, 30, 3, 6, Color.PINK, firstTrafficLights));
-		cars.add(new Car(500, 600, 20, 30, 3, 6, Color.ORANGE, firstTrafficLights));
+		cars.add(new Car(500, 100, 20, 30, 2, 6, Color.RED, firstTrafficLights, true, false));
+		cars.add(new Car(500, 200, 20, 30, 2, 6, Color.YELLOW, firstTrafficLights,true, false));
+		cars.add(new Car(500, 300, 20, 30, 3, 6, Color.GREEN, firstTrafficLights, true, false));
+		cars.add(new Car(500, 400, 20, 30, 3, 6, Color.BLACK, firstTrafficLights, true, false));
+		cars.add(new Car(500, 500, 20, 30, 3, 6, Color.PINK, firstTrafficLights, true, false));
+		cars.add(new Car(500, 600, 20, 30, 3, 6, Color.ORANGE, firstTrafficLights, true, false));
 		//cars.add(new Car(500, 400, 20, 30, 4, 6, Color.GREEN, firstTrafficLights));
 		//cars.add(new Car(500, 500, 20, 30, 5, 6, Color.BLACK, firstTrafficLights));
-		//cars.add(new Car(470, 600, 20, 30, 6, 6, Color.RED, firstTrafficLights));
-		//cars.add(new Car(470, 500, 20, 30, 4, 6, Color.PINK, firstTrafficLights));
+		cars.add(new Car(470, 300, 20, 30, 3, 6, Color.RED, firstTrafficLights, false, false));
+		cars.add(new Car(470, 600, 20, 30, 6, 6, Color.PINK, firstTrafficLights, false, false));
 		generateNewCarTimer = System.currentTimeMillis();
+		System.currentTimeMillis();
 	}
 	
 	public Main() {
@@ -93,18 +96,6 @@ public class Main extends JComponent {
 	        //message = "PAUSED=" + GlobalVariables.IS_PAUSED;
 	        //Debug.doDrawing((Graphics2D) g, message, Color.RED, 20.f, 70.f);
 		}
-		//todo
-		for(int i=0;i<cars.size();++i) {
-			
-			if(cars.get(i).y() <= 10) {
-				
-				int s = cars.get(i).speed();
-				int ms = cars.get(i).maxSpeed();
-				Color c = cars.get(i).color();
-				cars.remove(i);
-				//cars.add(new Car(500, 100, 20, 600, s, ms, c, firstTrafficLights));
-			}
-		}
 	
 		handleCarList();
 	}
@@ -130,7 +121,8 @@ public class Main extends JComponent {
 				
 				for(int j=i+1;j<carsSize;++j) {
 					
-					if(cars.get(i).x() == cars.get(j).x()) {//trzeba sie jeszcze zastano
+					//if(cars.get(i).x() == cars.get(j).x()) {//trzeba sie jeszcze zastano
+					if(cars.get(i).goLeft == false && cars.get(i).goRight == false) {
 						
 						if(cars.get(i).y() <= cars.get(j).y()) {
 
@@ -157,6 +149,34 @@ public class Main extends JComponent {
 								//cars.get(i).accelarate();		//it cause bug
 							}
 						}
+					//}
+					} else {
+						//nie jestem pewien czy to jest ok-chyba tak
+						if(cars.get(i).x() <= cars.get(j).x()) {
+							
+							if(cars.get(i).collision(cars.get(j))) {
+							
+								if(Math.abs((cars.get(i).x() - cars.get(j).x())) <= cars.get(i).width()) {
+									
+									//int shift = Math.abs((cars.get(i).y() - cars.get(j).y()));
+									cars.get(j).x(cars.get(j).x() + 20);
+									++tempCounter;
+									//cars.get(i).slowDown();
+								}
+								
+								if(cars.get(i).stop()) {
+									
+									cars.get(j).stop(true);
+								}
+								if(cars.get(j).speed() > cars.get(i).speed()) {
+									
+									cars.get(j).speed(cars.get(i).speed());
+								}
+							} else {
+								
+								//cars.get(i).accelarate();		//it cause bug
+							}
+						}
 					}
 				}
 			}
@@ -165,22 +185,81 @@ public class Main extends JComponent {
 	
 	protected void handleCarList() {
 		
-		if(this.generateNewCarTimer > generatingCarDelta) {
+		for(int i=0;i<cars.size();++i) {//usuwanie aut z listy jak wyjdzie poza obszar
+			
+			if(cars.get(i).y() <= 10 || cars.get(i).x() >= 750 || cars.get(i).x() <= 10) {
+				
+				cars.remove(i);
+			}
+		}
+		//dodawanie nowego auta
+		boolean timerAllowedToGenerateNewCarOnRightLane = false;
+		boolean timerAllowedToGenerateNewCarOnLeftLane = false;
+		if(System.currentTimeMillis() - this.generateNewCarTimer > generatingCarDelta) {
 			
 			this.generateNewCarTimer = System.currentTimeMillis();
-			boolean genaretaNewCar = false;
+			timerAllowedToGenerateNewCarOnRightLane = true;
+			timerAllowedToGenerateNewCarOnLeftLane = true;
+		}
+		if(timerAllowedToGenerateNewCarOnRightLane) {
+			
+			boolean noCarsInAreaOfCreatingNewCarOnRightLane = true;
+			boolean noCarsInAreaOfCreatingNewCarOnLeftLane = true;
 			for(int i=0;i<cars.size();++i) {
 				
-				if(cars.get(i).x() == 500 && cars.get(i).y() < 700 && cars.get(i).y() > 500) {
+				if(cars.get(i).lane == true) {//sprawdzam prawy pas
 					
-					genaretaNewCar = true;
+					if(cars.get(i).y() < 700 && cars.get(i).y() > 500) {//czy sa jakies auta w miejscu gdzie maja powstac nowe
+						
+						noCarsInAreaOfCreatingNewCarOnRightLane = false;//wchodze wiec sa auta
+						break;
+					}
 				}
 			}
-			if(genaretaNewCar == false) {
+			for(int i=0;i<cars.size();++i) {
 				
+				if(cars.get(i).lane == false) {//sprawdzam lewy pas
+					
+					if(cars.get(i).y() < 700 && cars.get(i).y() > 500) {//czy sa jakies auta w miejscu gdzie maja powstac nowe
+						
+						noCarsInAreaOfCreatingNewCarOnLeftLane = false;//wchodze wiec sa auta
+						break;
+					}
+				}
+			}
+			if(noCarsInAreaOfCreatingNewCarOnRightLane) {
+				
+				timerAllowedToGenerateNewCarOnRightLane = false;
+				noCarsInAreaOfCreatingNewCarOnRightLane = true;
+				//this.generateNewCarTimer = System.currentTimeMillis();//jeszcze przemyslec
 				int randSpeed = GlobalVariables.randInt(3, 6);
 				Color randColor = GlobalVariables.randColor();
-				cars.add(new Car(500, 600, 20, 30, randSpeed, 6, randColor, firstTrafficLights));
+				if(turnedCarsOnLeftCounter==3) {
+					
+					turnedCarsOnLeftCounter = 0;
+					cars.add(new Car(500, 600, 20, 30, randSpeed, 6, randColor, firstTrafficLights, true, true));
+				} else {
+					
+					++turnedCarsOnLeftCounter;
+					cars.add(new Car(500, 600, 20, 30, randSpeed, 6, randColor, firstTrafficLights, true, false));
+				}
+			}
+			if(noCarsInAreaOfCreatingNewCarOnLeftLane) {
+				
+				timerAllowedToGenerateNewCarOnLeftLane = false;
+				noCarsInAreaOfCreatingNewCarOnLeftLane = true;
+				int randSpeed = GlobalVariables.randInt(3, 6);
+				Color randColor = GlobalVariables.randColor();
+				if(turnedCarsOnRightCounter==0) {
+					
+					turnedCarsOnRightCounter=0;
+					cars.add(new Car(470, 600, 20, 30, randSpeed, 6, randColor, firstTrafficLights, false, true));
+				} else {
+					
+					++turnedCarsOnRightCounter;
+					cars.add(new Car(470, 600, 20, 30, randSpeed, 6, randColor, firstTrafficLights, false, false));
+				}
+				
 			}
 		}
 	}

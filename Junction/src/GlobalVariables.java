@@ -1,7 +1,6 @@
 import java.awt.Color;
 import java.awt.Image;
 import java.util.concurrent.ThreadLocalRandom;
-
 import javax.swing.ImageIcon;
 
 public class GlobalVariables {
