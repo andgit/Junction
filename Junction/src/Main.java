@@ -17,7 +17,7 @@ import javax.swing.Timer;
 public class Main extends JComponent {
 
 	ArrayList<Car> cars;
-	private TrafficLights firstTrafficLights;
+	private ArrayList<TrafficLights> trafficLights;
 	private static final long serialVersionUID = 1L;
 	int tempCounter = 0;
 	private long generateNewCarTimer;
@@ -32,20 +32,42 @@ public class Main extends JComponent {
 	
 	private void init() {
 		
-		firstTrafficLights = new TrafficLights(TrafficLights.TrafficLightsColors.GREEN, true, false, 600, 595);
+		trafficLights = new ArrayList<TrafficLights>();
+		setTrafficLights();
+		
 		cars = new ArrayList<Car>();
-		cars.add(new Car(500, 100, 20, 30, 4, 6, Color.RED, firstTrafficLights, true, false, false));
-		cars.add(new Car(500, 200, 20, 30, 4, 6, Color.YELLOW, firstTrafficLights,true, false, false));
-		cars.add(new Car(500, 300, 20, 30, 6, 6, Color.GREEN, firstTrafficLights, true, false, false));
-		cars.add(new Car(500, 400, 20, 30, 4, 6, Color.BLACK, firstTrafficLights, true, false, false));
-		cars.add(new Car(500, 500, 20, 30, 6, 6, Color.PINK, firstTrafficLights, true, false, false));
-		cars.add(new Car(500, 600, 20, 30, 5, 6, Color.ORANGE, firstTrafficLights, true, false, false));
+		cars.add(new Car(500, 100, 20, 30, 4, 6, Color.RED, trafficLights.get(0), trafficLights.get(1), true, false, false));
+		cars.add(new Car(500, 200, 20, 30, 4, 6, Color.YELLOW, trafficLights.get(0),trafficLights.get(1), true, false, false));
+		cars.add(new Car(500, 300, 20, 30, 6, 6, Color.GREEN, trafficLights.get(0), trafficLights.get(1), true, false, false));
+		cars.add(new Car(500, 400, 20, 30, 4, 6, Color.BLACK, trafficLights.get(0), trafficLights.get(1), true, false, false));
+		cars.add(new Car(500, 500, 20, 30, 6, 6, Color.PINK, trafficLights.get(0), trafficLights.get(1), true, false, false));
+		cars.add(new Car(500, 600, 20, 30, 5, 6, Color.ORANGE, trafficLights.get(0), trafficLights.get(1), true, false, false));
 		//cars.add(new Car(500, 400, 20, 30, 4, 6, Color.GREEN, firstTrafficLights));
 		//cars.add(new Car(500, 500, 20, 30, 5, 6, Color.BLACK, firstTrafficLights));
-		cars.add(new Car(470, 300, 20, 30, 3, 6, Color.RED, firstTrafficLights, false, false, false));
-		cars.add(new Car(470, 600, 20, 30, 6, 6, Color.PINK, firstTrafficLights, false, false, false));
+		cars.add(new Car(470, 300, 20, 30, 3, 6, Color.RED, trafficLights.get(0), trafficLights.get(1), false, false, false));
+		cars.add(new Car(470, 600, 20, 30, 6, 6, Color.PINK, trafficLights.get(0), trafficLights.get(1), false, false, false));
 		generateNewCarTimer = System.currentTimeMillis();
 		System.currentTimeMillis();
+	}
+
+	private void setTrafficLights() {
+
+		Pair positions[] = new Pair[4];
+		int x=548, y=318;
+		positions[0] = new Pair(x, y);
+		positions[1] = new Pair(x, y+10);
+		positions[2] = new Pair(x, y+20);
+		positions[3] = new Pair(x+15, y+25);
+		trafficLights.add(new TrafficLights(TrafficLights.TrafficLightsColors.GREEN, false, false, positions, 2000, 1000));
+		
+		Pair positions2[] = new Pair[4];
+		x=585;
+		y=570; 
+		positions2[0] = new Pair(x, y);
+		positions2[1] = new Pair(x, y+10);
+		positions2[2] = new Pair(x, y+20);
+		positions2[3] = new Pair(x+15, y+25);
+		trafficLights.add(new TrafficLights(TrafficLights.TrafficLightsColors.GREEN, true, true, positions2, 2000, 1000));
 	}
 	
 	public Main() {
@@ -62,7 +84,11 @@ public class Main extends JComponent {
 					c.actionPerformed();
 				}
 				handleCollision();
-				firstTrafficLights.actionPerformed();
+				
+				for(TrafficLights t: trafficLights) {
+					
+					t.actionPerformed();
+				}
 				repaint();
 			}
 		}).start();
@@ -82,7 +108,11 @@ public class Main extends JComponent {
 			
 			c.paintComponent(g);
 		}
-		firstTrafficLights.paintComponent(g);
+		
+		for(TrafficLights t: trafficLights) {
+			
+			t.paintComponent(g);
+		}
 		
 		if(GlobalVariables.ENABLE_DEBUG)
 		{
@@ -104,9 +134,40 @@ public class Main extends JComponent {
 	
 		handleCarList();
 		
-		for(Car c: cars) {
+		handleSideLane();
+		/*testy
+		if((x<550 || rot) && allowedToChangeTheLane) {
+			++x;
+		}
+		if( (y>530 || (x>=670 && y>490)) && allowedToChangeTheLane) {
+			--y;
+		} else if(rot == false) {
+			rot=true;
+			int t=w;
+			w=h;
+			h=t;
+		} else {
+			for(Car c: cars) {
+				if(c.y() < 510 && c.y() > 490) {
+				
+					if(x > (c.x()-50) || x < (c.x()+50)) {
+					
+						allowedToChangeTheLane = true;
+					}
+				}
+			}
+		}
+		//rotate rect test
+        Graphics2D g2d = (Graphics2D) g.create();
+
+        g2d.setPaint(new Color(150, 150, 0));
+        g2d.fillRect(x, y, w, h);*/
+	}
+
+	private void handleSideLane() {
+		for(Car c: cars) {//oblsuga pasa bocznego
 			
-			if(c.sideLane) {
+			if(c.sideLane && c.stop() == false) {
 				if((c.x<550 || c.isRotateOnSideLane) && c.allowedToChangeTheLane) {
 					++c.x;
 				}
@@ -134,33 +195,6 @@ public class Main extends JComponent {
 				}
 			}
 		}
-		
-		if((x<550 || rot) && allowedToChangeTheLane) {
-			++x;
-		}
-		if( (y>530 || (x>=670 && y>490)) && allowedToChangeTheLane) {
-			--y;
-		} else if(rot == false) {
-			rot=true;
-			int t=w;
-			w=h;
-			h=t;
-		} else {
-			for(Car c: cars) {
-				if(c.y() < 510 && c.y() > 490) {
-				
-					if(x > (c.x()-50) || x < (c.x()+50)) {
-					
-						allowedToChangeTheLane = true;
-					}
-				}
-			}
-		}
-		//rotate rect test
-        Graphics2D g2d = (Graphics2D) g.create();
-
-        g2d.setPaint(new Color(150, 150, 0));
-        g2d.fillRect(x, y, w, h);
 	}
 
 	private static void createAndShowGui() {
@@ -300,15 +334,15 @@ public class Main extends JComponent {
 				if(turnedCarsOnRightCounter==1) {
 					
 					++turnedCarsOnRightCounter;
-					cars.add(new Car(500, yOfNewCar, 20, 30, randSpeed, 6, randColor, firstTrafficLights, true, true, false));
+					cars.add(new Car(500, yOfNewCar, 20, 30, randSpeed, 6, randColor, trafficLights.get(0), trafficLights.get(1), true, true, false));
 				} else if(turnedCarsOnRightCounter==2) {
 					
 					turnedCarsOnRightCounter = 0;
-					cars.add(new Car(500, yOfNewCar, 20, 30, randSpeed, 6, randColor, firstTrafficLights, true, true, true));
+					cars.add(new Car(500, yOfNewCar, 20, 30, randSpeed, 6, randColor, trafficLights.get(0), trafficLights.get(1), true, true, true));
 				} else {
 					
 					++turnedCarsOnRightCounter;
-					cars.add(new Car(500, yOfNewCar, 20, 30, randSpeed, 6, randColor, firstTrafficLights, true, false, false));
+					cars.add(new Car(500, yOfNewCar, 20, 30, randSpeed, 6, randColor, trafficLights.get(0), trafficLights.get(1), true, false, false));
 				}
 			}
 			if(noCarsInAreaOfCreatingNewCarOnLeftLane) {
@@ -320,11 +354,11 @@ public class Main extends JComponent {
 				if(turnedCarsOnLeftCounter==3) {
 					
 					turnedCarsOnLeftCounter=0;
-					cars.add(new Car(470, yOfNewCar, 20, 30, randSpeed, 6, randColor, firstTrafficLights, false, true, false));
+					cars.add(new Car(470, yOfNewCar, 20, 30, randSpeed, 6, randColor, trafficLights.get(0), trafficLights.get(1), false, true, false));
 				} else {
 					
 					++turnedCarsOnLeftCounter;
-					cars.add(new Car(470, yOfNewCar, 20, 30, randSpeed, 6, randColor, firstTrafficLights, false, false, false));
+					cars.add(new Car(470, yOfNewCar, 20, 30, randSpeed, 6, randColor, trafficLights.get(0), trafficLights.get(1), false, false, false));
 				}
 				
 			}

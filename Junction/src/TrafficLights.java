@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 
 public class TrafficLights {
 
+	public Pair positions[]; 
 	public enum TrafficLightsColors {RED, YELLOW, GREEN;}
 	
 	private class GreenArrow {
@@ -35,15 +36,19 @@ public class TrafficLights {
 	private TrafficLightsColors previousColor; // red or green after yellow light
 	private GreenArrow greenArrow;
 	private long lightsTimer;
-	private long redGreenLightsLightingTime = 2000;
-	private long yellowLightLightingTime = 1000;
+	private long redGreenLightsLightingTime;
+	private long yellowLightLightingTime;
 	private long elapsedPausedTime;
 	
-	public TrafficLights(TrafficLightsColors currentColor, boolean isAvailableGreenArrow, boolean isEnableGreenArrow, int greenArrowX, int greenArrowY) {
+	public TrafficLights(TrafficLightsColors currentColor, boolean isAvailableGreenArrow, boolean isEnableGreenArrow, Pair positions[], long redGreenLightsLightingTime, long yellowLightLightingTime) {
 		
 		this.currentColor = currentColor;
 		this.previousColor = currentColor;
-		this.greenArrow = new GreenArrow(isAvailableGreenArrow, isEnableGreenArrow, greenArrowX, greenArrowY);
+		this.greenArrow = new GreenArrow(isAvailableGreenArrow, isEnableGreenArrow, positions[3].left, positions[3].right);
+		this.positions = positions;
+		this.redGreenLightsLightingTime = redGreenLightsLightingTime;
+		this.yellowLightLightingTime = yellowLightLightingTime;
+		
 		init();
 	}
 
@@ -57,39 +62,60 @@ public class TrafficLights {
     
     public void paintComponent(Graphics g) {
     	
-    	final int x = 585;
-    	int y = 590;
+    	//final int x = 585;
+    	//int y = 590;
+    	int currentPosition = 0;
     	String message = null;
     	
     	switch(currentColor) {
     	
 	    	case RED:
 	    		g.setColor(Color.RED);
-	    		y = 570;
+	    		//y = 570;
+	    		currentPosition = 0;
 	    		message = "RED";
 	    		break;
 	    	case YELLOW:
 	    		g.setColor(Color.YELLOW);
-	    		y = 580;
+	    		//y = 580;
+	    		currentPosition = 1;
 	    		message = "YELLOW";
 	    		break;
 	    	case GREEN:
 	    		g.setColor(Color.GREEN);
 	    		message = "GREEN";
+	    		currentPosition = 2;
 	    		break;
 	    		
 			default:
 				g.setColor(Color.GREEN);
-				y = 590;
+				//y = 590;
+				currentPosition = 2;
 				break;
     	}
 		
     	if(GlobalVariables.ENABLE_DEBUG)
 		{
-	        Debug.doDrawing((Graphics2D) g, message, g.getColor(), 600.f, 580.f);
+	        Debug.doDrawing((Graphics2D) g, message, g.getColor(), positions[0].left, positions[0].right);
+	        
+	        String greenArrowMessage = "";
+	        if(greenArrow.isAvailable) {
+	        	
+	        	if(greenArrow.isEnable) {
+	        		
+	        		greenArrowMessage = "enable";
+	        	} else {
+	        		
+	        		greenArrowMessage = "disable";
+	        	}
+	        } else {
+	        	
+	        	greenArrowMessage = "notAvailable";
+	        }
+	        Debug.doDrawing((Graphics2D) g, greenArrowMessage, g.getColor(), positions[3].left + 15, positions[3].right + 5);
 		}
     	
-		g.fillOval(x, y, GlobalVariables.TRAFFIC_LIGHT_RADIUS, GlobalVariables.TRAFFIC_LIGHT_RADIUS);
+		g.fillOval(positions[currentPosition].left, positions[currentPosition].right, GlobalVariables.TRAFFIC_LIGHT_RADIUS, GlobalVariables.TRAFFIC_LIGHT_RADIUS);
 		
 		greenArrow.paintComponent(g);
     }
@@ -101,6 +127,17 @@ public class TrafficLights {
 	}
 	
 	private void updateLightsTimersAndColors() {
+		
+		if(greenArrow.isAvailable) {//if current color is red green arrow is enable 
+		
+			if(this.currentColor == TrafficLightsColors.RED) {
+				
+				greenArrow.isEnable = true;
+			} else {
+				
+				greenArrow.isEnable = false;
+			}
+		}
 		
 		if(this.currentColor == TrafficLightsColors.GREEN || this.currentColor == TrafficLightsColors.RED) {
 			
@@ -141,5 +178,14 @@ public class TrafficLights {
 	TrafficLightsColors currentColor() {
 		
 		return this.currentColor;
+	}
+	
+	public boolean isGreenArrowAvailable() {
+		
+		return this.greenArrow.isAvailable;
+	}
+	public boolean isGreenArrowEnable() {
+		
+		return this.greenArrow.isEnable;
 	}
 }

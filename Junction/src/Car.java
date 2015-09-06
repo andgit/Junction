@@ -17,6 +17,7 @@ public class Car {
 	private final int maxSpeed; 
 	private Color color;
 	private TrafficLights assignedTrafficLights;
+	private TrafficLights assignedTrafficLightsWithGreenArrow;
 	private boolean stop;		// car stop
 	private long speedTimer;
 	public boolean goLeft = false;
@@ -29,7 +30,7 @@ public class Car {
 	public boolean allowedToChangeTheLane=true;//czy auto moze wlaczyc sie do ruchu
 	public boolean sideLane;//czy auto ma zjechac na poboczny pas
 	
-	public Car(int x, int y, int width, int height, int speed, int maxSpeed, Color color, TrafficLights assignedTrafficLights, boolean lane,  boolean changeDirectionCar, boolean sideLane) {
+	public Car(int x, int y, int width, int height, int speed, int maxSpeed, Color color, TrafficLights assignedTrafficLights, TrafficLights assignedTrafficLightsWithGreenArrow, boolean lane,  boolean changeDirectionCar, boolean sideLane) {
         
         this.x = x;
         this.y = y;
@@ -47,6 +48,7 @@ public class Car {
         this.maxSpeed = maxSpeed;
         this.color = color;
         this.assignedTrafficLights = assignedTrafficLights;
+        this.assignedTrafficLightsWithGreenArrow = assignedTrafficLightsWithGreenArrow;
         this.stop = false;
         this.speedTimer = System.currentTimeMillis();
         this.lane = lane;
@@ -59,16 +61,24 @@ public class Car {
     	if(GlobalVariables.IS_PAUSED == false) {
     		
     		go();
-	    	
-	    	/*if(y <= 0 || y >= GlobalVariables.SCREEN_WIDTH) {
-	    		
-	    		y = 600;
-	    	} else if (x <= 0 || x >= GlobalVariables.SCREEN_HEIGHT) {
-	    		
-	    		x = 500;
-	    	} else*/ if(assignedTrafficLights.currentColor() == TrafficLights.TrafficLightsColors.RED) {
+
+    		if(assignedTrafficLights.currentColor() == TrafficLights.TrafficLightsColors.RED) {//obsluga swiatel bez zielonej s.
 	    		
 	    		if(y < 330 && y > 310) {//car`ll stop before red light  
+	    			
+	    			this.stop = true;
+	    		}
+	    	} else {
+	    		
+	    		this.stop = false;
+	    	}
+    		
+    		if(assignedTrafficLightsWithGreenArrow.currentColor() == TrafficLights.TrafficLightsColors.RED) {//obsluga swiatel z zielona s.
+	    		
+    			if(sideLane && y < 590 && y > 580 && assignedTrafficLightsWithGreenArrow.isGreenArrowEnable() == false) {//najpierw obsluguje pas poboczny
+    				
+    				this.stop = true;
+    			} else if(y < 540 && y > 530 && sideLane==false) {//teraz sprawdzam glowny pas-gryzie sie z wyzszym ifem
 	    			
 	    			this.stop = true;
 	    		}
@@ -137,7 +147,7 @@ public class Car {
         g2.fillRect(x, y, width, height);
         updateBoundingDimensions();
         
-        Debug.doDrawing((Graphics2D) g, " x= " + x + " y= " + y + " cdirec= " + changeDirection, Color.RED, x, y);
+        Debug.doDrawing((Graphics2D) g, " x= " + x + " y= " + y + " cdirec= " + changeDirection + " side= " + sideLane + " green= " + assignedTrafficLightsWithGreenArrow.isGreenArrowEnable(), Color.RED, x, y);
         //g2.dispose();
 		
 		if(GlobalVariables.ENABLE_DEBUG)
@@ -152,11 +162,16 @@ public class Car {
 			//g.drawRect(x, y-(this.boundingHeight/2), width, height+this.boundingHeight);
 			g.drawRect(this.boundingDimensions[0], this.boundingDimensions[1], this.boundingDimensions[2], this.boundingDimensions[3]);
 			
-			g.fillOval(500, 250, 20, 20);
+			g.setColor(Color.RED);
+			g.fillOval(500, 250, 10, 10);
 			g.setColor(Color.blue);
-			g.fillOval(500, 530, 20, 20);
-			g.fillOval(670, 530, 20, 20);
-			g.fillOval(670, 500, 20, 20);
+			g.fillOval(500, 530, 10, 10);
+			g.setColor(Color.PINK);
+			g.fillOval(670, 530, 10, 10);
+			g.setColor(Color.BLACK);
+			g.fillOval(670, 500, 10, 10);
+			g.setColor(Color.ORANGE);
+			g.fillOval(550, 570, 10, 10);
 		}
     }
     
